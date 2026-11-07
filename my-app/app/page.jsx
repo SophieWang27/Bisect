@@ -1,7 +1,7 @@
 "use client";
-// BISECT student + teacher demo. Open http://localhost:3000/bisect
+
 import { useEffect, useState } from "react";
-import "./bisect.css";
+import "./globals.css";
 import { CHAIN, HTML_LANG, QUESTIONS, t } from "./_lib/data";
 import { isCorrect } from "./_lib/speech";
 import { logAnswer } from "./_lib/api";
