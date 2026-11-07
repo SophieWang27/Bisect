@@ -35,7 +35,8 @@ cp .env.example .env
 Open `my-app/.env` in VS Code and set `GEMINI_API_KEY` for the on-page AI tutor
 and personalized explanations. Create a key in [Google AI Studio](https://aistudio.google.com/app/apikey),
 paste it after `GEMINI_API_KEY=`, and keep `.env` private; it is ignored by Git.
-Restart FastAPI after saving the key:
+Open the AI chat again after saving; the backend checks the key on each health
+check, so a restart is not required for this local setup:
 
 ```bash
 uvicorn api:app --host 127.0.0.1 --port 8001

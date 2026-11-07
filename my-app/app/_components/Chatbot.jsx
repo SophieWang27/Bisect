@@ -18,6 +18,7 @@ const COPY = {
     missingKey: "Gemini key missing · Add GEMINI_API_KEY to my-app/.env",
     connected: "Connected",
     offline: "AI service is offline",
+    checking: "Checking AI connection…",
   },
   fr: {
     button: "Demander à BISECT AI",
@@ -32,6 +33,7 @@ const COPY = {
     missingKey: "Clé Gemini manquante · Ajoutez GEMINI_API_KEY à my-app/.env",
     connected: "Connecté",
     offline: "Service IA hors ligne",
+    checking: "Vérification de la connexion IA…",
   },
   zh: {
     button: "询问 BISECT AI",
@@ -46,6 +48,7 @@ const COPY = {
     missingKey: "缺少 Gemini 密钥 · 请将 GEMINI_API_KEY 添加到 my-app/.env",
     connected: "已连接",
     offline: "AI 服务未运行",
+    checking: "正在检查 AI 连接…",
   },
 };
 
@@ -56,7 +59,7 @@ export default function Chatbot({ topicId, topic, language = "en" }) {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [aiStatus, setAiStatus] = useState(null);
+  const [aiStatus, setAiStatus] = useState(undefined);
   const transcriptRef = useRef(null);
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function Chatbot({ topicId, topic, language = "en" }) {
           <header className="bx-chat-header">
             <div>
               <h2>{copy.title}</h2>
-              <p>{aiStatus?.gemini_configured ? `${copy.connected} · ${aiStatus.model}` : aiStatus ? copy.missingKey : copy.offline}</p>
+              <p>{aiStatus === undefined ? copy.checking : aiStatus?.gemini_configured ? `${copy.connected} · ${aiStatus.model}` : aiStatus ? copy.missingKey : copy.offline}</p>
             </div>
             <button type="button" className="bx-chat-close" onClick={() => setOpen(false)} aria-label={copy.close}>×</button>
           </header>

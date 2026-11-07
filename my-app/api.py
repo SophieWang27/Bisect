@@ -5,12 +5,13 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 from fastapi import FastAPI, HTTPException
 from google import genai
 from pydantic import BaseModel, Field
 
-load_dotenv()
+ENV_FILE = Path(__file__).resolve().parent / ".env"
+load_dotenv(ENV_FILE)
 
 from backend.storage import (
     CLASS_ID,
@@ -66,8 +67,21 @@ TOPIC_CATALOG = [
     if topic["model_id"] in MODEL_TOPICS
 ]
 
-api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key) if api_key else None
+client = None
+_client_key = None
+
+
+def get_gemini_client():
+    """Load a newly added local key without requiring a backend restart."""
+    global client, _client_key
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        api_key = str(dotenv_values(ENV_FILE).get("GEMINI_API_KEY", "") or "").strip()
+    api_key = api_key or None
+    if api_key != _client_key:
+        client = genai.Client(api_key=api_key) if api_key else None
+        _client_key = api_key
+    return client
 
 app = FastAPI(title="BISECT API")
 initialize_database()
@@ -125,7 +139,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": MODEL, "gemini_configured": client is not None}
+    return {"status": "ok", "model": MODEL, "gemini_configured": get_gemini_client() is not None}
 
 
 @app.get("/topics")
@@ -247,7 +261,7 @@ def retry(retries=4, **kwargs):
 
 @app.post("/explain")
 def explain(req: AskRequest):
-    if client is None:
+    if get_gemini_client() is None:
         raise HTTPException(status_code=503, detail="GEMINI_API_KEY is not configured.")
 
     language = LANG_NAMES.get(req.lang, "English")
@@ -281,10 +295,10 @@ def explain(req: AskRequest):
 
 @app.post("/chat")
 def chat(req: ChatRequest):
-    if client is None:
+    if get_gemini_client() is None:
         raise HTTPException(
             status_code=503,
-            detail="AI is not connected yet. Add your Gemini key to my-app/.env and restart FastAPI.",
+            detail="AI is not connected yet. Add your Gemini key to my-app/.env, save, then reopen this chat.",
         )
 
     language = LANG_NAMES[req.language]
