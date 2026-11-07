@@ -1,6 +1,23 @@
 // The browser talks to a same-origin Next.js route, which forwards AI requests
 // to the existing FastAPI /explain endpoint without exposing backend settings.
-import { LESSONS, QUESTIONS, TOPICS, t } from "./data";
+import { CHAIN, LESSONS, QUESTIONS, TOPICS, t } from "./data";
+
+const FALLBACK_TOPICS = CHAIN.map((id) => ({ id, names: TOPICS[id] }));
+
+export async function getTopics() {
+  try {
+    const response = await fetch("/api/topics", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Topics request failed: ${response.status}`);
+    const data = await response.json();
+    const available = (data.topics || [])
+      .filter((topic) => CHAIN.includes(topic.id) && topic.names)
+      .map((topic) => ({ id: topic.id, names: { ...TOPICS[topic.id], ...topic.names } }));
+    return available.length ? available : FALLBACK_TOPICS;
+  } catch (error) {
+    console.warn("Topic service unavailable; using the built-in topic list", error);
+    return FALLBACK_TOPICS;
+  }
+}
 
 // The current backend has no answer logging endpoint; answers remain local.
 export async function logAnswer(answer) {

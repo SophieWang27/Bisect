@@ -3,17 +3,30 @@ import { LANGS, LANG_NAMES, HTML_LANG, TOPICS, t } from "../_lib/data";
 import { speak } from "../_lib/speech";
 import { Logo, Speaker, Check, Cross, Question } from "./Icons";
 
-export function Header({ courseLang, myLang, setCourseLang, setMyLang, topicLabel, isTeacher }) {
+export function Header({ courseLang, myLang, setCourseLang, setMyLang, topicLabel, isTeacher, topics, selectedTopic = "twos_complement", onTopicChange = () => {} }) {
   const uiLang = isTeacher ? courseLang : myLang;
+  const topicChoices = Array.isArray(topics)
+    ? topics
+    : Object.entries(TOPICS).map(([id, names]) => ({ id, names }));
   return (
     <header className="bx-header">
       <div className="bx-brand">
         <Logo />
-        <span className="bx-wordmark">DELTALEARN</span>
+        <span className="bx-wordmark">BISECT</span>
         {topicLabel && <span className="bx-chip">{topicLabel}</span>}
         {isTeacher && <span className="bx-chip bx-chip-muted">{t("teacherView", uiLang)}</span>}
       </div>
       <div className="bx-lang-row">
+        {!isTeacher && (
+          <label className="bx-select-label">
+            {t("startTopic", uiLang)}
+            <select value={selectedTopic} onChange={(e) => onTopicChange(e.target.value)}>
+              {topicChoices.map((topic) => (
+                <option key={topic.id} value={topic.id}>{topic.names[uiLang] || topic.names.en}</option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="bx-select-label">
           {t("courseLanguage", uiLang)}
           <select value={courseLang} onChange={(e) => setCourseLang(e.target.value)}>

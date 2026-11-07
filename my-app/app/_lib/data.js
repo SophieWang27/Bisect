@@ -1,4 +1,4 @@
-// All demo content for DELTALEARN: topics, questions, lessons, UI text, teacher data.
+// BISECT content: topics, questions, lessons, UI text, teacher data.
 // Your JSON-logic teammate can replace this with the real data later. Keep the same shape.
 
 export const LANGS = ["en", "fr", "zh"];
@@ -242,7 +242,7 @@ export const UI = {
   myLanguage: { en: "My language", fr: "Ma langue", zh: "我的语言" },
   readAloud: { en: "Read aloud", fr: "Lire à voix haute", zh: "朗读" },
   checking: { en: "Checking foundations… question {n} of {t}", fr: "Vérification des bases… question {n} sur {t}", zh: "正在检查基础… 第 {n} 题，共 {t} 题" },
-  starting: { en: "Let's start with a question on two's complement", fr: "Commençons par une question sur le complément à deux", zh: "先来一道补码题" },
+  starting: { en: "Let's start with a question on {topic}", fr: "Commençons par une question sur {topic}", zh: "先来一道关于{topic}的题" },
   retesting: { en: "Retesting: {topic}", fr: "Nouveau test : {topic}", zh: "重新测试：{topic}" },
   noTimer: { en: "No timer. Take your time.", fr: "Pas de chrono. Prenez votre temps.", zh: "不计时，慢慢来。" },
   howAnswer: { en: "How do you want to answer?", fr: "Comment voulez-vous répondre ?", zh: "你想怎么回答？" },
@@ -266,7 +266,9 @@ export const UI = {
   showIn: { en: "Show in {lang}", fr: "Afficher en {lang}", zh: "用{lang}显示" },
   examLanguage: { en: "Exam language", fr: "Langue de l'examen", zh: "考试语言" },
   checkAnswer: { en: "Check answer", fr: "Vérifier", zh: "检查答案" },
-  secondCheck: { en: "One wrong answer isn't a gap. DELTALEARN always asks a second check question first.", fr: "Une seule erreur n'est pas une lacune. DELTALEARN pose toujours une question de confirmation.", zh: "答错一次不算缺口——还会再问一道确认题。" },
+  startTopic: { en: "Start topic", fr: "Sujet de départ", zh: "起始主题" },
+  nextTopic: { en: "Next topic", fr: "Sujet suivant", zh: "下一个主题" },
+  secondCheck: { en: "One wrong answer isn't a gap. BISECT always asks a second check question first.", fr: "Une seule erreur n'est pas une lacune. BISECT pose toujours une question de confirmation.", zh: "答错一次不算缺口——还会再问一道确认题。" },
   confirmQ: { en: "Quick check: one more on this topic", fr: "Vérification : encore une sur ce sujet", zh: "确认一下：这个知识点再来一题" },
   topicMap: { en: "Your topic map", fr: "Votre carte des notions", zh: "你的知识地图" },
   mapView: { en: "Map", fr: "Carte", zh: "地图" },

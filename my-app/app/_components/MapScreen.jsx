@@ -6,12 +6,12 @@ import { Arrow } from "./Icons";
 import TagsPanel from "./TagsPanel";
 
 // mode: "diagnosed" (root found) | "climbing" (retesting upward) | "done" (all fixed)
-export default function MapScreen({ states, rootCause, lang, courseLang, mode, nextTopic, fixedCount, explanationNote, onPrimary, onTeacher, onTagsShared }) {
+export default function MapScreen({ states, rootCause, startTopic = CHAIN[0], lang, courseLang, mode, nextTopic, fixedCount, explanationNote, onPrimary, onTeacher, onTagsShared, onNextTopic }) {
   const [view, setView] = useState("map");
   const headingRef = useRef(null);
   useEffect(() => headingRef.current?.focus(), []);
 
-  const start = CHAIN[0];
+  const start = startTopic;
   const nodes = CHAIN.map((id) => ({ id, status: states[id] || "untested", isRoot: id === rootCause && mode !== "done" }));
 
   let headline;
@@ -86,9 +86,14 @@ export default function MapScreen({ states, rootCause, lang, courseLang, mode, n
               {primaryLabel} <Arrow />
             </button>
           ) : (
-            <button type="button" className="bx-btn bx-btn-dark bx-btn-lg" onClick={onTeacher}>
-              {t("teacherView", lang)} <Arrow />
-            </button>
+            <div className="bx-row-wrap">
+              <button type="button" className="bx-btn bx-btn-dark bx-btn-lg" onClick={onTeacher}>
+                {t("teacherView", lang)} <Arrow />
+              </button>
+              <button type="button" className="bx-btn bx-btn-primary bx-btn-lg" onClick={onNextTopic}>
+                {t("nextTopic", lang)} <Arrow />
+              </button>
+            </div>
           )}
         </section>
         {mode !== "done" ? (

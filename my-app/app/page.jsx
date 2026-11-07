@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import "./globals.css";
-import { CHAIN, HTML_LANG, QUESTIONS, t } from "./_lib/data";
+import { CHAIN, HTML_LANG, QUESTIONS, TOPICS, t } from "./_lib/data";
 import { isCorrect } from "./_lib/speech";
-import { logAnswer } from "./_lib/api";
+import { getTopics, logAnswer } from "./_lib/api";
 import { Header, topicName } from "./_components/ui";
 import QuestionScreen from "./_components/QuestionScreen";
 import MapScreen from "./_components/MapScreen";
@@ -18,6 +18,8 @@ const LAST = CHAIN.length - 1;
 export default function BisectPage() {
   const [courseLang, setCourseLang] = useState("en");
   const [myLang, setMyLang] = useState("en");
+  const [startTopic, setStartTopic] = useState(CHAIN[0]);
+  const [topicOptions, setTopicOptions] = useState(() => CHAIN.map((id) => ({ id, names: TOPICS[id] })));
   const [screen, setScreen] = useState("question"); // question | map | lesson | languageGap | teacher
   // phase: original (first question) | langcheck | diagnose | retest | langretry
   const [phase, setPhase] = useState("original");
@@ -48,10 +50,20 @@ export default function BisectPage() {
     document.documentElement.lang = HTML_LANG[lang];
   }, [myLang, courseLang, screen]);
 
-  function restart() {
+  useEffect(() => {
+    let alive = true;
+    getTopics().then((topics) => alive && setTopicOptions(topics));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  function restart(nextStartTopic = startTopic) {
+    const nextStartIndex = Math.max(0, CHAIN.indexOf(nextStartTopic));
+    setStartTopic(nextStartTopic);
     setScreen("question");
     setPhase("original");
-    setIdx(0);
+    setIdx(nextStartIndex);
     setQIndex(0);
     setStates(freshStates());
     setRoot(null);
@@ -81,6 +93,7 @@ export default function BisectPage() {
 
   const topicId = CHAIN[idx];
   const question = QUESTIONS[topicId][qIndex];
+  const startIndex = Math.max(0, CHAIN.indexOf(startTopic));
 
   // Which language each question is shown in (the two-language model).
   let displayLang = myLang;
@@ -104,17 +117,27 @@ export default function BisectPage() {
       }
       setTopicState(topicId, "gap");
       // Different languages? First check whether it's the words, not the idea.
-      if (myLang !== courseLang && langShown === courseLang) return ask("langcheck", 0, 1);
-      return ask("diagnose", 1, 0);
+      if (myLang !== courseLang && langShown === courseLang) return ask("langcheck", startIndex, 1);
+      if (startIndex === LAST) return ask("diagnose", startIndex, 1);
+      return ask("diagnose", startIndex + 1, 0);
     }
 
     if (phase === "langcheck") {
       if (correct) return setScreen("languageGap");
-      return ask("diagnose", 1, 0);
+      if (startIndex === LAST) {
+        setRoot(startTopic);
+        return showMap("diagnosed");
+      }
+      return ask("diagnose", startIndex + 1, 0);
     }
 
     if (phase === "diagnose") {
       if (correct) {
+        if (idx === startIndex) {
+          setTopicState(topicId, "mastered");
+          setRoot(null);
+          return showMap("done");
+        }
         // Passed (first try or on the confirmation question): the gap is the topic above.
         setTopicState(topicId, "mastered");
         setRoot(CHAIN[idx - 1]);
@@ -138,7 +161,7 @@ export default function BisectPage() {
       }
       setTopicState(topicId, "mastered");
       setFixed((f) => f + 1);
-      if (idx === 0) return showMap("done");
+      if (idx === startIndex) return showMap("done");
       setNextTopic(CHAIN[idx - 1]);
       return showMap("climbing");
     }
@@ -149,7 +172,8 @@ export default function BisectPage() {
         setFixed(1);
         return showMap("done");
       }
-      return ask("diagnose", 1, 0);
+      if (startIndex === LAST) return ask("diagnose", startIndex, 1);
+      return ask("diagnose", startIndex + 1, 0);
     }
   }
 
@@ -163,9 +187,11 @@ export default function BisectPage() {
   }
 
   const inDiagnosis = phase === "original" || phase === "langcheck" || phase === "diagnose";
-  const progress = inDiagnosis && phase !== "original" ? { n: asked + 1, total: Math.max(5, asked + 1) } : null;
+  const progress = inDiagnosis && phase !== "original"
+    ? { n: asked + 1, total: Math.max(CHAIN.length - startIndex + 1, asked + 1) }
+    : null;
   let headline = null;
-  if (phase === "original") headline = t("starting", myLang);
+  if (phase === "original") headline = t("starting", myLang, { topic: topicName(startTopic, myLang) });
   if (phase === "retest" || phase === "langretry") headline = t("retesting", myLang, { topic: topicName(topicId, myLang) });
 
   const isTeacher = screen === "teacher";
@@ -177,8 +203,11 @@ export default function BisectPage() {
         myLang={myLang}
         setCourseLang={setCourseLang}
         setMyLang={setMyLang}
-        topicLabel={isTeacher ? null : topicName(CHAIN[0], myLang)}
+        topicLabel={isTeacher ? null : topicName(startTopic, myLang)}
         isTeacher={isTeacher}
+        topics={topicOptions}
+        selectedTopic={startTopic}
+        onTopicChange={restart}
       />
 
       {screen === "question" && (
@@ -201,6 +230,7 @@ export default function BisectPage() {
         <MapScreen
           states={states}
           rootCause={root}
+          startTopic={startTopic}
           lang={myLang}
           courseLang={courseLang}
           mode={mapMode}
@@ -210,6 +240,7 @@ export default function BisectPage() {
           onPrimary={onMapPrimary}
           onTeacher={goTeacher}
           onTagsShared={(tags) => setSharedTags(tags)}
+          onNextTopic={() => restart(CHAIN[(startIndex + 1) % CHAIN.length])}
         />
       )}
 

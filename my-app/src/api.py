@@ -7,20 +7,37 @@ from google import genai
 from pydantic import BaseModel
 
 LANG_NAMES = {"en": "English", "fr": "French", "zh": "Simplified Chinese"}
-
-load_dotenv() 
-
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise RuntimeError("GEMINI_API_KEY is not set. Check backend/.env")
-print("Key loaded:", bool(api_key)) 
-
 MODEL = "gemini-3.8-flash"
 
-client = genai.Client(api_key=api_key)
-print("Client created")
+TOPIC_CATALOG = [
+    {
+        "id": "twos_complement",
+        "names": {"en": "Two's complement", "fr": "Complément à deux", "zh": "补码"},
+        "prerequisite": "bit_flip",
+    },
+    {
+        "id": "bit_flip",
+        "names": {"en": "Bit flipping", "fr": "Inversion des bits", "zh": "按位取反"},
+        "prerequisite": "place_value",
+    },
+    {
+        "id": "place_value",
+        "names": {"en": "Binary place value", "fr": "Valeur de position binaire", "zh": "二进制位值"},
+        "prerequisite": "powers_of_two",
+    },
+    {
+        "id": "powers_of_two",
+        "names": {"en": "Powers of two", "fr": "Puissances de deux", "zh": "2 的幂"},
+        "prerequisite": None,
+    },
+]
 
-app = FastAPI()
+load_dotenv()
+
+api_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=api_key) if api_key else None
+
+app = FastAPI(title="BISECT API")
 
 class AskRequest(BaseModel):
     topic: str
@@ -29,6 +46,16 @@ class AskRequest(BaseModel):
     student_answer: str
     student_explanation: str = ""
     lang: str = "en"
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model": MODEL, "gemini_configured": client is not None}
+
+
+@app.get("/topics")
+def topics():
+    return {"topics": TOPIC_CATALOG}
 
 def retry(retries=4, **kwargs):
     for attempt in range(retries):
@@ -42,6 +69,9 @@ def retry(retries=4, **kwargs):
 
 @app.post("/explain")
 def explain(req: AskRequest):
+    if client is None:
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY is not configured.")
+
     language = LANG_NAMES.get(req.lang, "English")
     try:
         response = retry(
@@ -65,7 +95,7 @@ def explain(req: AskRequest):
                 temperature=0.4,
             ),
         )
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Gemini error: {e}")
+    except Exception:
+        raise HTTPException(status_code=502, detail="Gemini could not generate an explanation.")
 
     return {"text": response.text or ""}

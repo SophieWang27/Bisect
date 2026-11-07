@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DELTALEARN | Learning Studio",
+  title: "BISECT | Learning Studio",
   description: "Trace your learning path back to the foundations that matter.",
 };
 

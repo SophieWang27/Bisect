@@ -2,6 +2,8 @@
 
 WiE Hackathon 2026 Submission
 
+**Project: BISECT** — a multilingual concept-gap tutor.
+
 FastAPI + React.js
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
@@ -33,6 +35,29 @@ The proxy defaults to `http://127.0.0.1:8000`. Set the server-only
 `BACKEND_URL` environment variable if FastAPI runs elsewhere. Do not put the
 Gemini key in a `NEXT_PUBLIC_` variable. If the backend is unavailable, the
 frontend shows the built-in lesson content instead.
+
+### Start the FastAPI backend
+
+Use Python 3.11 or newer. From the repository root:
+
+```bash
+cd my-app
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+```
+
+Open `my-app/.env` in VS Code and add your Gemini API key after `GEMINI_API_KEY=`.
+Keep that file private; it is ignored by Git. Then start the backend:
+
+```bash
+uvicorn src.api:app --reload --port 8000
+```
+
+The backend serves `/health`, `/topics`, and `/explain`. Topic selection works
+without a Gemini key; personalized explanations need one. The configured model
+is `gemini-3.8-flash`.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
