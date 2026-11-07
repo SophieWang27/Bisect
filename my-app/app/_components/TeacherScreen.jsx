@@ -37,7 +37,12 @@ const TT = {
   generateReport: { en: "Generate report", fr: "Générer le rapport", zh: "生成报告" },
   downloadReport: { en: "Download report", fr: "Télécharger le rapport", zh: "下载报告" },
   openTeams: { en: "Open Teams chat draft", fr: "Ouvrir le brouillon Teams", zh: "打开 Teams 聊天草稿" },
-  reportHint: { en: "Teams opens a draft with the summary. Review it, choose a chat, and press Send there.", fr: "Teams ouvre un brouillon. Vérifiez-le, choisissez une conversation, puis envoyez-le dans Teams.", zh: "Teams 将打开摘要草稿。请检查内容、选择聊天对象并在 Teams 中发送。" },
+  teamsRecipients: { en: "Teams recipient emails (comma-separated)", fr: "Adresses des destinataires Teams (séparées par des virgules)", zh: "Teams 收件人邮箱（用逗号分隔）" },
+  teamsHelp: { en: "Add recipient email addresses to prefill a new chat draft. Without recipients, the link opens Teams; copy or download the report to share it.", fr: "Ajoutez les adresses des destinataires pour préremplir un nouveau brouillon. Sans destinataire, le lien ouvre Teams; copiez ou téléchargez le rapport pour le partager.", zh: "填写收件人邮箱以预填新聊天草稿。未填写时会打开 Teams；可复制或下载报告后分享。" },
+  copyContent: { en: "Copy text", fr: "Copier le texte", zh: "复制文本" },
+  copied: { en: "Copied to clipboard.", fr: "Copié dans le presse-papiers.", zh: "已复制到剪贴板。" },
+  copyFailed: { en: "Could not copy. Use the download instead.", fr: "Impossible de copier. Téléchargez plutôt le fichier.", zh: "复制失败，请改为下载文件。" },
+  reportHint: { en: "Teams opens a draft for review. You choose the destination and send it there.", fr: "Teams ouvre un brouillon à vérifier. Choisissez la destination et envoyez-le dans Teams.", zh: "Teams 将打开待审核草稿。请在 Teams 中选择聊天对象并发送。" },
   empty: { en: "No learner activity yet. This dashboard updates as students complete activities and share feedback.", fr: "Aucune activité pour le moment. Le tableau de bord se met à jour lorsque les élèves terminent des activités.", zh: "暂无学习者活动。学生完成活动并分享反馈后，仪表板会更新。" },
   accessDenied: { en: "The access code was rejected or teacher access is not configured.", fr: "Le code est incorrect ou l'accès enseignant n'est pas configuré.", zh: "访问码错误或尚未配置教师访问。" },
   dataError: { en: "Could not load class data. Check that FastAPI is running and try again.", fr: "Impossible de charger les données. Vérifiez que FastAPI fonctionne et réessayez.", zh: "无法加载班级数据。请检查 FastAPI 是否运行，然后重试。" },
@@ -50,8 +55,11 @@ const tt = (key, lang, vars = {}) => {
   return text;
 };
 
-function makeTeamsLink(message) {
+function makeTeamsLink(message, recipients) {
+  const users = recipients.split(/[;,\s]+/).map((email) => email.trim()).filter(Boolean);
+  if (!users.length) return "https://teams.microsoft.com/v2/";
   const link = new URL("https://teams.microsoft.com/l/chat/0/0");
+  link.searchParams.set("users", users.join(","));
   link.searchParams.set("message", message);
   return link.toString();
 }
@@ -64,7 +72,7 @@ function downloadMarkdown(filename, markdown) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(blobUrl);
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 }
 
 function buildVocabularyCard(lang) {
@@ -78,10 +86,10 @@ export default function TeacherScreen({ lang }) {
   const [summary, setSummary] = useState(null);
   const [report, setReport] = useState(null);
   const [vocabulary, setVocabulary] = useState("");
-  const [reportTeamsLink, setReportTeamsLink] = useState("");
-  const [vocabularyTeamsLink, setVocabularyTeamsLink] = useState("");
+  const [teamsRecipients, setTeamsRecipients] = useState("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const headingRef = useRef(null);
 
   useEffect(() => headingRef.current?.focus(), []);
@@ -120,7 +128,6 @@ export default function TeacherScreen({ lang }) {
       const nextReport = await getTeacherReport(token.trim(), lang);
       setReport(nextReport);
       setSummary(nextReport.summary);
-      setReportTeamsLink(makeTeamsLink(nextReport.markdown));
     } catch {
       setError(tt("reportError", lang));
     } finally {
@@ -131,7 +138,6 @@ export default function TeacherScreen({ lang }) {
   function createVocabularyCard() {
     const markdown = buildVocabularyCard(lang);
     setVocabulary(markdown);
-    setVocabularyTeamsLink(makeTeamsLink(markdown));
   }
 
   function lockDashboard() {
@@ -139,8 +145,16 @@ export default function TeacherScreen({ lang }) {
     setSummary(null);
     setReport(null);
     setVocabulary("");
-    setReportTeamsLink("");
-    setVocabularyTeamsLink("");
+    setTeamsRecipients("");
+  }
+
+  async function copyContent(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setNotice(tt("copied", lang));
+    } catch {
+      setNotice(tt("copyFailed", lang));
+    }
   }
 
   if (!summary) {
@@ -236,7 +250,8 @@ export default function TeacherScreen({ lang }) {
             {vocabulary && (
               <div className="bx-stack-8">
                 <button type="button" className="bx-btn bx-btn-ghost" onClick={() => downloadMarkdown("bisect-vocabulary-card.md", vocabulary)}>{tt("downloadCard", lang)}</button>
-                <a className="bx-link-button" href={vocabularyTeamsLink} target="_blank" rel="noopener noreferrer"><Send size={16} /> {tt("openTeams", lang)}</a>
+                <button type="button" className="bx-btn bx-btn-ghost" onClick={() => copyContent(vocabulary)}>{tt("copyContent", lang)}</button>
+                <a className="bx-link-button" href={makeTeamsLink(vocabulary, teamsRecipients)} target="_blank" rel="noopener noreferrer"><Send size={16} /> {tt("openTeams", lang)}</a>
               </div>
             )}
           </section>
@@ -267,11 +282,17 @@ export default function TeacherScreen({ lang }) {
             <Send size={17} /> {busy === "report" ? tt("loading", lang) : tt("generateReport", lang)}
           </button>
         </div>
+        <label className="bx-field">
+          {tt("teamsRecipients", lang)}
+          <input className="bx-input" type="text" autoComplete="off" placeholder="teacher@example.edu, colleague@example.edu" value={teamsRecipients} onChange={(event) => setTeamsRecipients(event.target.value)} />
+        </label>
+        <p className="bx-muted bx-small">{tt("teamsHelp", lang)}</p>
         {report && (
           <div className="bx-stack-12">
             <div className="bx-row-wrap">
               <button type="button" className="bx-btn bx-btn-ghost" onClick={() => downloadMarkdown("bisect-class-report.md", report.markdown)}>{tt("downloadReport", lang)}</button>
-              <a className="bx-link-button" href={reportTeamsLink} target="_blank" rel="noopener noreferrer"><Send size={16} /> {tt("openTeams", lang)}</a>
+              <button type="button" className="bx-btn bx-btn-ghost" onClick={() => copyContent(report.markdown)}>{tt("copyContent", lang)}</button>
+              <a className="bx-link-button" href={makeTeamsLink(report.markdown, teamsRecipients)} target="_blank" rel="noopener noreferrer"><Send size={16} /> {tt("openTeams", lang)}</a>
             </div>
             <p className="bx-muted bx-small">{tt("reportHint", lang)}</p>
             <details className="bx-report-details">
@@ -280,6 +301,7 @@ export default function TeacherScreen({ lang }) {
             </details>
           </div>
         )}
+        {notice && <p className="bx-muted bx-small" role="status">{notice}</p>}
       </section>
     </main>
   );

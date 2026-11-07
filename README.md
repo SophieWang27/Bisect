@@ -57,10 +57,10 @@ the Gemini key or teacher access code in a `NEXT_PUBLIC_` variable. Restart both
 servers after changing `.env` values.
 
 The teacher dashboard starts empty until real student activity is submitted.
-Teachers can refresh the data, download a Markdown class report, open a Teams
-chat draft containing the summary, and create a downloadable multilingual
-vocabulary card. The Teams chat link opens a draft for review; a teacher chooses
-the destination and sends it in Teams.
+Teachers can refresh the data, download or copy a Markdown class report, open
+a Teams chat draft, and create a downloadable multilingual vocabulary card.
+Enter Teams recipient email addresses to prefill a new chat draft; without
+recipients the link opens Teams. The teacher reviews and sends the message.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
