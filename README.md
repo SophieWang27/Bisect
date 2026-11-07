@@ -8,19 +8,31 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Start the frontend from `my-app`:
 
 ```bash
+cd my-app
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Gemini explanations
+
+The frontend uses the existing FastAPI `POST /explain` endpoint through a Next.js
+server route. Start the backend in a second terminal with the project's Python
+environment and `GEMINI_API_KEY` available to `my-app/src/api.py`:
+
+```bash
+cd my-app
+uvicorn src.api:app --reload --port 8000
+```
+
+The proxy defaults to `http://127.0.0.1:8000`. Set the server-only
+`BACKEND_URL` environment variable if FastAPI runs elsewhere. Do not put the
+Gemini key in a `NEXT_PUBLIC_` variable. If the backend is unavailable, the
+frontend shows the built-in lesson content instead.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

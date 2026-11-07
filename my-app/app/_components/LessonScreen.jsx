@@ -7,7 +7,7 @@ import { useSpeechRecognitionAvailable } from "../_lib/useSpeechRecognitionAvail
 import { ReadAloudButton, IconSpeakButton, TopicWithTerm, WithBinary, topicName } from "./ui";
 import { Arrow, Mic } from "./Icons";
 
-export default function LessonScreen({ topicId, wrongValue, explanation, lang, courseLang, onRetest }) {
+export default function LessonScreen({ topicId, wrongValue, explanation, question, lang, courseLang, onRetest }) {
   const [lesson, setLesson] = useState(null);
   const [teachBack, setTeachBack] = useState("");
   const [listening, setListening] = useState(false);
@@ -16,11 +16,11 @@ export default function LessonScreen({ topicId, wrongValue, explanation, lang, c
 
   useEffect(() => {
     let alive = true;
-    getLesson({ topicId, wrongValue, explanation, lang, courseLang }).then((l) => alive && setLesson(l));
+    getLesson({ topicId, wrongValue, explanation, question, lang, courseLang }).then((l) => alive && setLesson(l));
     return () => {
       alive = false;
     };
-  }, [topicId, wrongValue, explanation, lang, courseLang]);
+  }, [topicId, wrongValue, explanation, question, lang, courseLang]);
 
   useEffect(() => {
     if (lesson) headingRef.current?.focus();
