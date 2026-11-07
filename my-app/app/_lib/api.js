@@ -106,9 +106,8 @@ export async function shareTags(sessionId, tagIds) {
   return response.json();
 }
 
-export async function getTeacherSummary(token) {
+export async function getTeacherSummary() {
   const response = await fetch("/api/teacher/summary", {
-    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
   const payload = await response.json();
@@ -116,9 +115,8 @@ export async function getTeacherSummary(token) {
   return payload;
 }
 
-export async function getTeacherReport(token, lang = "en") {
+export async function getTeacherReport(lang = "en") {
   const response = await fetch(`/api/teacher/report?lang=${encodeURIComponent(lang)}`, {
-    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
   const payload = await response.json();

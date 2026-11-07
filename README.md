@@ -32,19 +32,16 @@ python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Open `my-app/.env` in VS Code. Set `GEMINI_API_KEY` for personalized tutoring and
-set `TEACHER_ACCESS_TOKEN` to a private access code of at least 32 characters
-for the teacher dashboard. The teacher enters that same code in the app. For
-example, generate a strong code with
-`python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+Open `my-app/.env` in VS Code and set `GEMINI_API_KEY` for personalized tutoring.
 Keep `.env` private; it is ignored by Git. Then start FastAPI:
 
 ```bash
-uvicorn api:app --host 127.0.0.1 --port 8000
+uvicorn api:app --host 127.0.0.1 --port 8001
 ```
 
 The backend serves `/health`, `/topics`, `/explain`, anonymous activity intake,
-and access-protected teacher summary/report routes. Teacher metrics are derived
+and public teacher summary/report routes. Anyone who can reach the website can
+view its aggregate teacher dashboard and reports. Teacher metrics are derived
 from persisted SQLite records in `my-app/bisect.sqlite3`; answers, names, and
 free-text explanations are not stored in those records. Records older than 90
 days are pruned at backend startup by default. Set `BISECT_CLASS_ID` to separate
@@ -52,11 +49,11 @@ class datasets. Personalized explanations use `gemini-3.8-flash` by default
 and require a Gemini key; set `GEMINI_MODEL` to another supported Gemini model
 if needed. The teacher report is based on saved activity. The frontend proxies
 requests through same-origin Next.js routes. The proxy defaults to
-`http://127.0.0.1:8000`; set `BACKEND_URL` if FastAPI runs elsewhere. Never put
-the Gemini key or teacher access code in a `NEXT_PUBLIC_` variable. Restart both
+`http://127.0.0.1:8001`; set `BACKEND_URL` if FastAPI runs elsewhere. Never put
+the Gemini key in a `NEXT_PUBLIC_` variable. Restart both
 servers after changing `.env` values.
 
-The teacher dashboard starts empty until real student activity is submitted.
+The public teacher dashboard starts empty until real student activity is submitted.
 Teachers can refresh the data, download or copy a Markdown class report, open
 a Teams chat draft, and create a downloadable multilingual vocabulary card.
 Enter Teams recipient email addresses to prefill a new chat draft; without

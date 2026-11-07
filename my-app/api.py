@@ -2,12 +2,11 @@ import os
 import sys
 import time
 import json
-import secrets
 from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, HTTPException
 from google import genai
 from pydantic import BaseModel, Field
 
@@ -147,24 +146,13 @@ def tags(req: TagsRequest):
     return {"accepted": True}
 
 
-def require_teacher(authorization: str | None):
-    configured_token = os.getenv("TEACHER_ACCESS_TOKEN", "").strip()
-    if len(configured_token) < 32:
-        raise HTTPException(status_code=503, detail="Set a teacher access code with at least 32 characters.")
-    supplied_token = (authorization or "").removeprefix("Bearer ").strip()
-    if not supplied_token or not secrets.compare_digest(supplied_token, configured_token):
-        raise HTTPException(status_code=401, detail="Teacher access code is incorrect.")
-
-
 @app.get("/teacher/summary")
-def get_teacher_summary(authorization: str | None = Header(default=None)):
-    require_teacher(authorization)
+def get_teacher_summary():
     return teacher_summary()
 
 
 @app.get("/teacher/report")
-def get_teacher_report(lang: Language = "en", authorization: str | None = Header(default=None)):
-    require_teacher(authorization)
+def get_teacher_report(lang: Language = "en"):
     summary = teacher_summary()
     report_labels = {
         "en": {

@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 
 export async function proxyToBackend(request, path) {
-  const backendUrl = (process.env.BACKEND_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+  const backendUrl = (process.env.BACKEND_URL || "http://127.0.0.1:8001").replace(/\/$/, "");
   const query = new URL(request.url).search;
   const headers = new Headers({ Accept: "application/json" });
   const contentType = request.headers.get("content-type");
-  const authorization = request.headers.get("authorization");
   if (contentType) headers.set("Content-Type", contentType);
-  if (authorization) headers.set("Authorization", authorization);
 
   try {
     const response = await fetch(`${backendUrl}${path}${query}`, {

@@ -8,13 +8,8 @@ import { Bulb, Send } from "./Icons";
 
 const TT = {
   title: { en: "Class overview", fr: "Vue d'ensemble de la classe", zh: "班级概览" },
-  accessTitle: { en: "Teacher access", fr: "Accès enseignant", zh: "教师访问" },
-  accessHint: { en: "Enter the teacher access code configured for this BISECT class.", fr: "Saisissez le code d'accès enseignant configuré pour cette classe BISECT.", zh: "输入为此 BISECT 班级设置的教师访问码。" },
-  accessLabel: { en: "Teacher access code", fr: "Code d'accès enseignant", zh: "教师访问码" },
-  accessHelp: { en: "Set TEACHER_ACCESS_TOKEN in my-app/.env, then enter the same value here.", fr: "Définissez TEACHER_ACCESS_TOKEN dans my-app/.env, puis saisissez la même valeur ici.", zh: "在 my-app/.env 中设置 TEACHER_ACCESS_TOKEN，然后在此输入相同的值。" },
-  unlock: { en: "Open dashboard", fr: "Ouvrir le tableau de bord", zh: "打开仪表板" },
   refresh: { en: "Refresh data", fr: "Actualiser les données", zh: "刷新数据" },
-  signOut: { en: "Lock dashboard", fr: "Verrouiller le tableau de bord", zh: "锁定仪表板" },
+  retry: { en: "Try again", fr: "Réessayer", zh: "重试" },
   loading: { en: "Loading…", fr: "Chargement…", zh: "正在加载…" },
   active: { en: "Anonymous sessions", fr: "Sessions anonymes", zh: "匿名学习会话" },
   diagnosed: { en: "Completed diagnoses", fr: "Diagnostics terminés", zh: "已完成诊断" },
@@ -44,7 +39,6 @@ const TT = {
   copyFailed: { en: "Could not copy. Use the download instead.", fr: "Impossible de copier. Téléchargez plutôt le fichier.", zh: "复制失败，请改为下载文件。" },
   reportHint: { en: "Teams opens a draft for review. You choose the destination and send it there.", fr: "Teams ouvre un brouillon à vérifier. Choisissez la destination et envoyez-le dans Teams.", zh: "Teams 将打开待审核草稿。请在 Teams 中选择聊天对象并发送。" },
   empty: { en: "No learner activity yet. This dashboard updates as students complete activities and share feedback.", fr: "Aucune activité pour le moment. Le tableau de bord se met à jour lorsque les élèves terminent des activités.", zh: "暂无学习者活动。学生完成活动并分享反馈后，仪表板会更新。" },
-  accessDenied: { en: "The access code was rejected or teacher access is not configured.", fr: "Le code est incorrect ou l'accès enseignant n'est pas configuré.", zh: "访问码错误或尚未配置教师访问。" },
   dataError: { en: "Could not load class data. Check that FastAPI is running and try again.", fr: "Impossible de charger les données. Vérifiez que FastAPI fonctionne et réessayez.", zh: "无法加载班级数据。请检查 FastAPI 是否运行，然后重试。" },
   reportError: { en: "The report could not be generated. Refresh the data and try again.", fr: "Le rapport n'a pas pu être généré. Actualisez les données puis réessayez.", zh: "无法生成报告。请刷新数据后重试。" },
 };
@@ -82,38 +76,30 @@ function buildVocabularyCard(lang) {
 }
 
 export default function TeacherScreen({ lang }) {
-  const [token, setToken] = useState("");
   const [summary, setSummary] = useState(null);
   const [report, setReport] = useState(null);
   const [vocabulary, setVocabulary] = useState("");
   const [teamsRecipients, setTeamsRecipients] = useState("");
-  const [busy, setBusy] = useState("");
+  const [busy, setBusy] = useState("summary");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const headingRef = useRef(null);
 
-  useEffect(() => headingRef.current?.focus(), []);
-
-  async function unlock(event) {
-    event.preventDefault();
-    if (!token.trim()) return;
-    setBusy("summary");
-    setError("");
-    try {
-      setSummary(await getTeacherSummary(token.trim()));
-    } catch (requestError) {
-      setSummary(null);
-      setError(requestError.message || tt("accessDenied", lang));
-    } finally {
-      setBusy("");
-    }
-  }
+  useEffect(() => {
+    let active = true;
+    headingRef.current?.focus();
+    getTeacherSummary()
+      .then((data) => { if (active) setSummary(data); })
+      .catch(() => { if (active) setError(tt("dataError", lang)); })
+      .finally(() => { if (active) setBusy(""); });
+    return () => { active = false; };
+  }, [lang]);
 
   async function refresh() {
     setBusy("summary");
     setError("");
     try {
-      setSummary(await getTeacherSummary(token.trim()));
+      setSummary(await getTeacherSummary());
     } catch {
       setError(tt("dataError", lang));
     } finally {
@@ -125,7 +111,7 @@ export default function TeacherScreen({ lang }) {
     setBusy("report");
     setError("");
     try {
-      const nextReport = await getTeacherReport(token.trim(), lang);
+      const nextReport = await getTeacherReport(lang);
       setReport(nextReport);
       setSummary(nextReport.summary);
     } catch {
@@ -140,14 +126,6 @@ export default function TeacherScreen({ lang }) {
     setVocabulary(markdown);
   }
 
-  function lockDashboard() {
-    setToken("");
-    setSummary(null);
-    setReport(null);
-    setVocabulary("");
-    setTeamsRecipients("");
-  }
-
   async function copyContent(text) {
     try {
       await navigator.clipboard.writeText(text);
@@ -160,23 +138,14 @@ export default function TeacherScreen({ lang }) {
   if (!summary) {
     return (
       <main className="bx-main bx-narrow bx-dash">
-        <section className="bx-card bx-stack-16 bx-teacher-access">
+        <section className="bx-card bx-stack-16">
           <div className="bx-stack-4">
             <p className="bx-tiny-label">BISECT · TEACHER</p>
-            <h1 ref={headingRef} tabIndex={-1} className="bx-h1">{tt("accessTitle", lang)}</h1>
-            <p className="bx-muted">{tt("accessHint", lang)}</p>
+            <h1 ref={headingRef} tabIndex={-1} className="bx-h1">{tt("title", lang)}</h1>
           </div>
-          <form className="bx-stack-12" onSubmit={unlock}>
-            <label className="bx-field">
-              {tt("accessLabel", lang)}
-              <input className="bx-input" type="password" autoComplete="current-password" value={token} onChange={(event) => setToken(event.target.value)} />
-            </label>
-            <p className="bx-muted bx-small">{tt("accessHelp", lang)}</p>
-            {error && <p className="bx-bad" role="alert">{error}</p>}
-            <button type="submit" className="bx-btn bx-btn-primary" disabled={!token.trim() || busy === "summary"}>
-              {busy === "summary" ? tt("loading", lang) : tt("unlock", lang)}
-            </button>
-          </form>
+          {busy === "summary" && <p className="bx-muted" role="status">{tt("loading", lang)}</p>}
+          {error && <p className="bx-bad" role="alert">{error}</p>}
+          {error && <button type="button" className="bx-btn bx-btn-primary" onClick={refresh}>{tt("retry", lang)}</button>}
         </section>
       </main>
     );
@@ -199,7 +168,6 @@ export default function TeacherScreen({ lang }) {
           <button type="button" className="bx-btn bx-btn-ghost" onClick={refresh} disabled={busy !== ""}>
             {busy === "summary" ? tt("loading", lang) : tt("refresh", lang)}
           </button>
-          <button type="button" className="bx-btn bx-btn-ghost" onClick={lockDashboard}>{tt("signOut", lang)}</button>
         </div>
       </div>
 
