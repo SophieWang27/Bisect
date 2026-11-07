@@ -32,7 +32,7 @@ export async function getLesson({ topicId, wrongValue, explanation, question: at
       student_explanation: explanation || "",
       lang,
     });
-    return { ...fallback, feedback: data || fallback.feedback };
+    return { ...fallback, feedback: data.text || fallback.feedback };
   } catch (e) {
     console.warn("AI explanation unavailable; using the built-in lesson", e);
     return fallback;

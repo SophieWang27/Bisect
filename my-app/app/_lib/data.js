@@ -1,4 +1,4 @@
-// All demo content for BISECT: topics, questions, lessons, UI text, teacher data.
+// All demo content for DELTALEARN: topics, questions, lessons, UI text, teacher data.
 // Your JSON-logic teammate can replace this with the real data later. Keep the same shape.
 
 export const LANGS = ["en", "fr", "zh"];
@@ -266,7 +266,7 @@ export const UI = {
   showIn: { en: "Show in {lang}", fr: "Afficher en {lang}", zh: "用{lang}显示" },
   examLanguage: { en: "Exam language", fr: "Langue de l'examen", zh: "考试语言" },
   checkAnswer: { en: "Check answer", fr: "Vérifier", zh: "检查答案" },
-  secondCheck: { en: "One wrong answer isn't a gap. BISECT always asks a second check question first.", fr: "Une seule erreur n'est pas une lacune. BISECT pose toujours une question de confirmation.", zh: "答错一次不算缺口——还会再问一道确认题。" },
+  secondCheck: { en: "One wrong answer isn't a gap. DELTALEARN always asks a second check question first.", fr: "Une seule erreur n'est pas une lacune. DELTALEARN pose toujours une question de confirmation.", zh: "答错一次不算缺口——还会再问一道确认题。" },
   confirmQ: { en: "Quick check: one more on this topic", fr: "Vérification : encore une sur ce sujet", zh: "确认一下：这个知识点再来一题" },
   topicMap: { en: "Your topic map", fr: "Votre carte des notions", zh: "你的知识地图" },
   mapView: { en: "Map", fr: "Carte", zh: "地图" },

@@ -9,7 +9,7 @@ export function Header({ courseLang, myLang, setCourseLang, setMyLang, topicLabe
     <header className="bx-header">
       <div className="bx-brand">
         <Logo />
-        <span className="bx-wordmark">BISECT</span>
+        <span className="bx-wordmark">DELTALEARN</span>
         {topicLabel && <span className="bx-chip">{topicLabel}</span>}
         {isTeacher && <span className="bx-chip bx-chip-muted">{t("teacherView", uiLang)}</span>}
       </div>
