@@ -71,6 +71,53 @@ export function normalize(value) {
     .replace(/[−–—]/g, "-");
 }
 
+function simplifyFraction(numerator, denominator) {
+  let n = Number(numerator);
+  let d = Number(denominator);
+  if (!Number.isFinite(n) || !Number.isFinite(d) || d === 0) return null;
+  if (d < 0) {
+    n *= -1;
+    d *= -1;
+  }
+  let a = Math.abs(n);
+  let b = d;
+  while (b) [a, b] = [b, a % b];
+  const divisor = a || 1;
+  return `${n / divisor}/${d / divisor}`;
+}
+
+const FRACTION_DENOMINATORS = {
+  half: 2, halves: 2, demi: 2, demie: 2, moitie: 2, "moitié": 2,
+  quarter: 4, quarters: 4, fourth: 4, fourths: 4, quart: 4, quarts: 4,
+  third: 3, thirds: 3, tier: 3, tiers: 3,
+  fifth: 5, fifths: 5, cinquième: 5, cinquièmes: 5, huitieme: 8, huitiemes: 8,
+  "huitième": 8, "huitièmes": 8,
+  eighth: 8, eighths: 8, tenth: 10, tenths: 10,
+};
+
+function parseFraction(raw) {
+  const text = String(raw ?? "").toLocaleLowerCase();
+  const compact = text.replace(/\s+/g, "").replace(/[−–—]/g, "-");
+  const direct = compact.match(/^(-?\d+)\/(-?\d+)$/);
+  if (direct) return simplifyFraction(direct[1], direct[2]);
+
+  // Mandarin reads fractions denominator-first: 四分之三 means 3/4.
+  const chinese = text.match(/([零〇一二两三四五六七八九十]+)分之([零〇一二两三四五六七八九十]+)/);
+  if (chinese) {
+    const denominator = parseChineseNumber(chinese[1]);
+    const numerator = parseChineseNumber(chinese[2]);
+    return simplifyFraction(numerator, denominator);
+  }
+
+  const tokens = text.split(/[^a-zà-ÿ]+/).filter(Boolean);
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const numerator = NUMBER_WORDS[tokens[i]];
+    const denominator = FRACTION_DENOMINATORS[tokens[i + 1]];
+    if (numerator !== undefined && denominator) return simplifyFraction(numerator, denominator);
+  }
+  return null;
+}
+
 // Returns a normalised answer string ("11", "1011", "-1") or null if none found.
 export function parseAnswer(raw) {
   if (!raw) return null;
@@ -78,9 +125,12 @@ export function parseAnswer(raw) {
   const negative = NEGATIVE_WORDS.some((w) => text.includes(w));
   const sign = (s) => (negative && !s.startsWith("-") ? "-" + s : s);
 
+  const fraction = parseFraction(text);
+  if (fraction !== null) return sign(fraction);
+
   // 1. Plain digits typed or recognised ("11", "1011", "-1", "1 0 1 1")
   const compact = text.replace(/\s+/g, "");
-  if (/^-?\d+$/.test(compact)) return compact;
+  if (/^-?\d+(?:[.,]\d+)?$/.test(compact)) return compact.replace(",", ".");
 
   // 2. Digits somewhere inside a sentence: take the last number mentioned
   const digitMatches = text.match(/-?\d+/g);
@@ -123,6 +173,16 @@ export function parseAnswer(raw) {
     }
   }
   return last === null ? null : sign(String(last));
+}
+
+// Typed answers keep exact decimal/fraction formats before falling back to words.
+export function parseTypedAnswer(raw) {
+  if (raw === null || raw === undefined || !String(raw).trim()) return null;
+  const text = String(raw).trim();
+  const unicodeFractions = { "½": "1/2", "⅓": "1/3", "⅔": "2/3", "¼": "1/4", "¾": "3/4" };
+  if (unicodeFractions[text]) return unicodeFractions[text];
+  const parsed = parseAnswer(text);
+  return parsed ?? normalize(text);
 }
 
 export function isCorrect(question, value) {
