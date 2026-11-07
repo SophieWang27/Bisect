@@ -41,8 +41,11 @@ def explain(req: AskRequest):
             contents=f"Topic: {req.topic}",
             config=genai.types.GenerateContentConfig(
                 system_instruction=(
-                    "You are a patient tutor. Explain the topic to a beginner "
-                    "in one short paragraph, in plain language."
+                    "You are a patient tutor. You will ask a question based on the user's chosen topic."
+                    "Be encouraging to the user."
+                    "The answer can be multiple-choice or short answer."
+                    "After the root topic is reached, explain the topic in one short paragraph, in plain language."
+                    "Any specialist terms should be explained."
                 ),
                 temperature=0.4,
             ),
