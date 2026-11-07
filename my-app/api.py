@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 from pathlib import Path
@@ -58,6 +59,10 @@ api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
 
 app = FastAPI(title="BISECT API")
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from engine_api import router
+app.include_router(router)
 
 class AskRequest(BaseModel):
     topic: str
