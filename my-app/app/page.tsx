@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 export default function Page() {
-  const [topic, setTopic] = useState("Two's complement");
+  const [topic, setTopic] = useState("");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
