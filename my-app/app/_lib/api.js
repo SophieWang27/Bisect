@@ -2,16 +2,13 @@
 // to the existing FastAPI /explain endpoint without exposing backend settings.
 import { LESSONS, QUESTIONS, TOPICS, t } from "./data";
 
-// Log every answer. The backend needs langShown for language-gap detection.
-// answer = { questionId, topicId, mode, value, explanation, langShown, correct }
+// The current backend has no answer logging endpoint; answers remain local.
 export async function logAnswer(answer) {
   // The current backend has no answer logging endpoint. Keep the demo usable.
   return { ok: true, localOnly: true, answer };
 }
 
-// Lesson for the root topic, aimed at the student's wrong answer.
-// The real backend would ask the AI: "write in {lang}, key terms in {courseLang} in brackets,
-// address this wrong answer: {wrongValue}, student's explanation: {explanation}".
+// Use Gemini for personalized feedback and retain the built-in translated lesson content.
 export async function getLesson({ topicId, wrongValue, explanation, question: attemptedQuestion, lang, courseLang }) {
   const lesson = LESSONS[topicId];
   const question = attemptedQuestion || QUESTIONS[topicId][0];
