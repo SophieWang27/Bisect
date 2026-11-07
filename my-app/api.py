@@ -24,7 +24,7 @@ from backend.storage import (
 )
 
 LANG_NAMES = {"en": "English", "fr": "French", "zh": "Simplified Chinese"}
-MODEL = os.getenv("GEMINI_MODEL", "").strip() or "gemini-3.8-flash"
+MODEL = os.getenv("GEMINI_MODEL", "").strip() or "gemini-3.5-flash-lite"
 
 TOPIC_NAMES = [
     {

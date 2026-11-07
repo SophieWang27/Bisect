@@ -48,7 +48,7 @@ view its aggregate teacher dashboard and reports. Teacher metrics are derived
 from persisted SQLite records in `my-app/bisect.sqlite3`; answers, names, and
 free-text explanations are not stored in those records. Records older than 90
 days are pruned at backend startup by default. Set `BISECT_CLASS_ID` to separate
-class datasets. Personalized explanations use `gemini-3.8-flash` by default
+class datasets. The chatbot and personalized explanations use `gemini-3.5-flash-lite` by default
 and require a Gemini key; set `GEMINI_MODEL` to another supported Gemini model
 if needed. The teacher report is based on saved activity. The frontend proxies
 requests through same-origin Next.js routes. The proxy defaults to
