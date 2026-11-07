@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 16, "column": 0}, "map": {"version":3,"sources":["file:///Users/cynthiachen/WiE-Hacks-2026-Delta/my-app/app/page.tsx"],"sourcesContent":["import { useState } from \"react\";\n\nexport default function Page() {\n  const [lesson, setLesson] = useState<{ explanation: string } | null>(null);\n\n  async function load() {\n    const res = await fetch(\"/api/lesson\", {\n      method: \"POST\",\n      headers: { \"Content-Type\": \"application/json\" },\n      body: JSON.stringify({ topic: \"Binary place value\" }),\n    });\n    setLesson(await res.json());\n  }\n\n  return (\n    <main>\n      <button onClick={load}>Get lesson</button>\n      {lesson && <p>{lesson.explanation}</p>}\n    </main>\n  );\n}\n\n"],"names":["Page","lesson","setLesson","load","res","fetch","method","headers","body","JSON","stringify","topic","json","onClick","explanation"],"mappings":";;;;;AAAA;;;AAEe,SAASA;IACtB,MAAM,CAACC,QAAQC,UAAU,GAAG,IAAA,iNAAQ,EAAiC;IAErE,eAAeC;QACb,MAAMC,MAAM,MAAMC,MAAM,eAAe;YACrCC,QAAQ;YACRC,SAAS;gBAAE,gBAAgB;YAAmB;YAC9CC,MAAMC,KAAKC,SAAS,CAAC;gBAAEC,OAAO;YAAqB;QACrD;QACAT,UAAU,MAAME,IAAIQ,IAAI;IAC1B;IAEA,qBACE,8OAAC;;0BACC,8OAAC;gBAAOC,SAASV;0BAAM;;;;;;YACtBF,wBAAU,8OAAC;0BAAGA,OAAOa,WAAW;;;;;;;;;;;;AAGvC"}}]
+}
