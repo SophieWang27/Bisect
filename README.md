@@ -32,14 +32,16 @@ python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Open `my-app/.env` in VS Code and set `GEMINI_API_KEY` for personalized tutoring.
-Keep `.env` private; it is ignored by Git. Then start FastAPI:
+Open `my-app/.env` in VS Code and set `GEMINI_API_KEY` for the on-page AI tutor
+and personalized explanations. Create a key in [Google AI Studio](https://aistudio.google.com/app/apikey),
+paste it after `GEMINI_API_KEY=`, and keep `.env` private; it is ignored by Git.
+Restart FastAPI after saving the key:
 
 ```bash
 uvicorn api:app --host 127.0.0.1 --port 8001
 ```
 
-The backend serves `/health`, `/topics`, `/explain`, anonymous activity intake,
+The backend serves `/health`, `/topics`, `/explain`, `/chat`, anonymous activity intake,
 and public teacher summary/report routes. Anyone who can reach the website can
 view its aggregate teacher dashboard and reports. Teacher metrics are derived
 from persisted SQLite records in `my-app/bisect.sqlite3`; answers, names, and

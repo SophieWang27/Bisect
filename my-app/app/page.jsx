@@ -11,6 +11,7 @@ import MapScreen from "./_components/MapScreen";
 import LessonScreen from "./_components/LessonScreen";
 import LanguageGapScreen from "./_components/LanguageGapScreen";
 import TeacherScreen from "./_components/TeacherScreen";
+import Chatbot from "./_components/Chatbot";
 
 const freshStates = () => Object.fromEntries(CHAIN.map((id) => [id, "untested"]));
 const LAST = CHAIN.length - 1;
@@ -311,6 +312,11 @@ export default function BisectPage() {
         </button>
         <button type="button" onClick={restart}>{t("restart", myLang)}</button>
       </nav>
+      <Chatbot
+        topicId={topicId}
+        topic={topicName(topicId, isTeacher ? courseLang : myLang)}
+        language={isTeacher ? courseLang : myLang}
+      />
     </div>
   );
 }

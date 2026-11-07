@@ -133,3 +133,20 @@ export async function explain(payload) {
   if (!res.ok) throw new Error(`Server returned ${res.status}`);
   return res.json();
 }
+
+export async function chatWithTutor({ topicId, language, messages }) {
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic_id: topicId, language, messages }),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || "The AI tutor could not respond.");
+  return payload.text;
+}
+
+export async function getAIStatus() {
+  const response = await fetch("/api/health", { cache: "no-store" });
+  if (!response.ok) throw new Error("The AI service is unavailable.");
+  return response.json();
+}
