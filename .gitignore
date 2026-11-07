@@ -45,3 +45,10 @@ next.config.ts
 tsconfig.json
 eslint.config.mjs
 
+#python
+__pycache__/
+*.pyc
+
+#testing
+api_test.py
+
