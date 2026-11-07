@@ -1,0 +1,11 @@
+"powers_of_two" : {
+    "name" : "Powers of Two",
+    "prereqs" : [],
+    "questions" : [
+        {
+            "id" : "pw1",
+            "text" : "What is 2^3?",
+            "options" : ["6", ""]
+        }
+    ]
+}
