@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 16, "column": 0}, "map": {"version":3,"sources":["file:///Users/hellomyson/Desktop/GameJam/WiE-Hacks-2026-Delta/my-app/app/page.tsx"],"sourcesContent":["import { redirect } from \"next/navigation\";\n\nexport default function Home() {\n  redirect(\"/bisect\");\n}\n"],"names":["Home"],"mappings":";;;;AAAA;AAAA;;AAEe,SAASA;IACtB,IAAA,iMAAQ,EAAC;AACX"}}]
-}
