@@ -61,3 +61,14 @@ export async function shareTags(tagIds) {
     return { ok: false };
   }
 }
+
+export async function explain(payload) {
+  const res = await fetch("/api/explain", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`Server returned ${res.status}`);
+  const data = await res.json();
+  return data.text;
+}
