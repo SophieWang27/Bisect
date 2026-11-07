@@ -87,4 +87,6 @@ def retest_step(s, choice, correct):
         s.wrong_picks[s.current_topic] = choice
         s.phase = "lesson"
 
-
+def to_response(S):
+    q = None
+    
