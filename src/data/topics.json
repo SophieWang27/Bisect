@@ -1,11 +1,158 @@
-"powers_of_two" : {
-    "name" : "Powers of Two",
-    "prereqs" : [],
-    "questions" : [
-        {
-            "id" : "pw1",
-            "text" : "What is 2^3?",
-            "options" : ["6", ""]
-        }
-    ]
+{
+    "powers_of_two" : {
+        "name" : "Powers of Two",
+        "prereqs" : [],
+        "questions" : [
+            {
+                "id" : "pw1",
+                "text" : "What is 2^3?",
+                "options" : ["6", "4", "8", "16"],
+                "correct" : 2,
+                "mistakes" : {
+                    "0" : "multiplied 2 times 3 instead of using the exponent",
+                    "1" : "stopped one power early (that is 2^2)",
+                    "3" : "went one power too far (that is 2^4)"
+                }
+            },
+            {
+                "id" : "pw2",
+                "text" : "What is 2^0?",
+                "options" : ["0", "1", "2", "undefined"],
+                "correct" : 1,
+                "mistakes" : {
+                    "0" : "thinks anything to the power 0 is 0",
+                    "2" : "thinks the answer is just the base",
+                    "3" : "thinks a zero exponent is not allowed"
+                }
+            },
+            {
+                "id": "pw3",
+                "text": "Which power of 2 equals 64?",
+                "options": ["2^5", "2^6", "2^7", "2^8"],
+                "correct": 1,
+                "mistakes": {
+                    "0": "off by one power (2^5 is 32)",
+                    "2": "off by one power (2^7 is 128)",
+                    "3": "went two powers too far (2^8 is 256)"
+                }
+            }
+        ]
+    },
+    "binary_place_value" : {
+        "name" : "Binary Place Value",
+        "prereqs" : ["powers_of_two"],
+        "questions" : [
+            {
+                "id" : "bp1",
+                "text" : "What is 1011 (binary) as a regular decimal number?",
+                "options" : ["9", "22", "11", "13"],
+                "correct" : 2,
+                "mistakes" : {
+                    "0" : "left out the 2s place (8 + 1)",
+                    "1" : "thought the rightmost place was 2^1 instead of 2^0, so every place was doubled (2 + 4 + 16)",
+                    "3" : "went one power too far (that is 2^4)"
+                }
+            },
+            {
+                "id" : "bp2",
+                "text" : "In an 8-bit unsigned binary number, what is the place value of the leftmost bit?",
+                "options" : ["8", "64", "128", "256"],
+                "correct" : 2,
+                "mistakes" : {
+                    "0" : "used the number of bits instead of a power of 2",
+                    "1" : "off by one power (2^6 instead of 2^7)",
+                    "3" : "forgot places start at 2^0, so went one power too far"
+                }
+            },
+            {
+                "id" : "bp3",
+                "text" : "What is 6 in 4-bit binary?",
+                "options" : ["0011", "0110", "0101", "1100"],
+                "correct" : 1,
+                "mistakes" : {
+                    "0" : "that is 3, put the bits in the wrong places (2 + 1)",
+                    "2" : "that is 5, put the 1 in the wrong place (4 + 1)",
+                    "3" : "shifted the bits one place too far left (that is 12)"
+                }
+            }
+        ]
+    },
+    "bit_flipping" : {
+        "name" : "Bit Flipping",
+        "prereqs" : ["binary_place_value"],
+        "questions" : [
+            {
+                "id" : "bf1",
+                "text" : "Flip every bit of 0101.",
+                "options" : ["1010", "1011", "0101", "1111"],
+                "correct" : 0,
+                "mistakes" : {
+                    "1" : "flipped the bits and also added 1",
+                    "2" : "did not change anything",
+                    "3" : "set every bit to 1 instead of flipping"
+                }
+            },
+            {
+                "id" : "bf2",
+                "text" : "Flip every bit of 1100.",
+                "options" : ["0011", "0100", "1100", "0010"],
+                "correct" : 0,
+                "mistakes" : {
+                    "1" : "flipped only the leftmost bit",
+                    "2" : "did not change anything",
+                    "3" : "flipped the bits and then subtracted 1"
+                }
+            },
+            {
+                "id": "bf3",
+                "text": "Flip every bit of 00000111.",
+                "options": ["11111000", "11111001", "00001000", "11111111"],
+                "correct": 0,
+                "mistakes": {
+                    "1": "flipped the bits and also added 1",
+                    "2": "added 1 to the original number instead of flipping",
+                    "3": "set every bit to 1 instead of flipping"
+                }
+            }
+        ]
+    },
+    "twos_complement" : {
+        "name" : "Twos Complement",
+        "prereqs" : ["bit_flipping"],
+        "questions" : [
+            {
+                "id" : "tc1",
+                "text" : "What is -5 in 4-bit two's complement?",
+                "options" : ["1011", "1010", "0101", "1101"],
+                "correct" : 0,
+                "mistakes" : {
+                    "1" : "flipped the bits of 0101 but forgot to add 1",
+                    "2" : "wrote +5 and ignored the negative sign",
+                    "3" : "used sign-magnitude (sign bit 1 plus 101)"
+                }
+            },
+            {
+                "id" : "tc2",
+                "text" : "What is -3 in 4-bit two's complement?",
+                "options" : ["1100", "1101", "1011", "0011"],
+                "correct" : 1,
+                "mistakes" : {
+                    "0" : "flipped the bits of 0011 but forgot to add 1",
+                    "2" : "used sign-magnitude (sign bit 1 plus 011)",
+                    "3" : "wrote +3 and ignored the negative sign"
+                }
+            },
+            {
+                "id": "tc3",
+                "text": "What decimal value does 1110 represent in 4-bit two's complement?",
+                "options": ["-2", "-6", "14", "-1"],
+                "correct": 0,
+                "mistakes": {
+                    "1": "used sign-magnitude (sign bit 1 plus 110 = -6)",
+                    "2": "read it as an unsigned number",
+                    "3": "flipped to 0001 but forgot to add 1"
+                }
+            }
+        ]
+    }
 }
