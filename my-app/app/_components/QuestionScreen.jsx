@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { HTML_LANG, LANG_NAMES, t } from "../_lib/data";
-import { listenOnce, parseAnswer, normalize } from "../_lib/speech";
+import { listenOnce, parseAnswer, parseTypedAnswer } from "../_lib/speech";
 import { useSpeechRecognitionAvailable } from "../_lib/useSpeechRecognitionAvailable";
 import { ReadAloudButton, TopicWithTerm, WithBinary, Bin } from "./ui";
 import { Arrow, Globe, Keyboard, Mic, Radio } from "./Icons";
@@ -28,10 +28,15 @@ export default function QuestionScreen({
   const [explainListening, setExplainListening] = useState(false);
   const canSpeak = useSpeechRecognitionAvailable();
   const headingRef = useRef(null);
+  const typedInputRef = useRef(null);
 
   useEffect(() => {
     headingRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (mode === "type") typedInputRef.current?.focus();
+  }, [mode]);
 
   const prompt = question.prompt[shownLang] || question.prompt.en;
   const otherLang = shownLang === courseLang ? myLang : courseLang;
@@ -39,7 +44,7 @@ export default function QuestionScreen({
 
   let value = null;
   if (mode === "choose") value = choice;
-  if (mode === "type") value = parseAnswer(typed) ?? (typed.trim() ? normalize(typed) : null);
+  if (mode === "type") value = parseTypedAnswer(typed);
   if (mode === "speak") value = voice.confirmed ? voice.parsed : null;
 
   function startVoiceAnswer() {
@@ -149,13 +154,21 @@ export default function QuestionScreen({
           <label className="bx-field">
             {t("yourAnswer", uiLang)}
             <input
+              ref={typedInputRef}
               type="text"
               className="bx-input bx-input-big"
               placeholder={t("typeHere", uiLang)}
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && submit()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
               autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
             />
           </label>
         )}

@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import "./globals.css";
 import { CHAIN, HTML_LANG, QUESTIONS, t } from "./_lib/data";
@@ -14,26 +15,27 @@ import TeacherScreen from "./_components/TeacherScreen";
 const freshStates = () => Object.fromEntries(CHAIN.map((id) => [id, "untested"]));
 const LAST = CHAIN.length - 1;
 
-export default function Home() {
-    const [courseLang, setCourseLang] = useState("en");
-    const [myLang, setMyLang] = useState("en");
-    const [screen, setScreen] = useState("question"); // question | map | lesson | languageGap | teacher
-    // phase: original (first question) | langcheck | diagnose | retest | langretry
-    const [phase, setPhase] = useState("original");
-    const [idx, setIdx] = useState(0);
-    const [qIndex, setQIndex] = useState(0);
-    const [states, setStates] = useState(freshStates);
-    const [root, setRoot] = useState(null);
-    const [wrong, setWrong] = useState({});
-    const [explanations, setExplanations] = useState({});
-    const [asked, setAsked] = useState(0);
-    const [fixed, setFixed] = useState(0);
-    const [mapMode, setMapMode] = useState("diagnosed");
-    const [nextTopic, setNextTopic] = useState(null);
-    const [lessonTopic, setLessonTopic] = useState(null);
-    const [attempt, setAttempt] = useState(0);
-    const [sharedTags, setSharedTags] = useState([]);
-    const [lastStudentScreen, setLastStudentScreen] = useState("question");
+export default function BisectPage() {
+  const [courseLang, setCourseLang] = useState("en");
+  const [myLang, setMyLang] = useState("en");
+  const [screen, setScreen] = useState("question"); // question | map | lesson | languageGap | teacher
+  // phase: original (first question) | langcheck | diagnose | retest | langretry
+  const [phase, setPhase] = useState("original");
+  const [idx, setIdx] = useState(0);
+  const [qIndex, setQIndex] = useState(0);
+  const [states, setStates] = useState(freshStates);
+  const [root, setRoot] = useState(null);
+  const [wrong, setWrong] = useState({});
+  const [wrongQuestions, setWrongQuestions] = useState({});
+  const [explanations, setExplanations] = useState({});
+  const [asked, setAsked] = useState(0);
+  const [fixed, setFixed] = useState(0);
+  const [mapMode, setMapMode] = useState("diagnosed");
+  const [nextTopic, setNextTopic] = useState(null);
+  const [lessonTopic, setLessonTopic] = useState(null);
+  const [attempt, setAttempt] = useState(0);
+  const [sharedTags, setSharedTags] = useState([]);
+  const [lastStudentScreen, setLastStudentScreen] = useState("question");
 
   const goTeacher = () => {
     setLastStudentScreen(screen);
@@ -54,6 +56,7 @@ export default function Home() {
     setStates(freshStates());
     setRoot(null);
     setWrong({});
+    setWrongQuestions({});
     setExplanations({});
     setAsked(0);
     setFixed(0);
@@ -88,7 +91,10 @@ export default function Home() {
     const correct = isCorrect(question, value);
     logAnswer({ questionId: question.id, topicId, mode, value, explanation, langShown, correct });
     setAsked((n) => n + 1);
-    if (!correct && (qIndex === 0 || !wrong[topicId])) setWrong((w) => ({ ...w, [topicId]: value }));
+    if (!correct && (qIndex === 0 || !wrong[topicId] || phase === "retest")) {
+      setWrong((w) => ({ ...w, [topicId]: value }));
+      setWrongQuestions((w) => ({ ...w, [topicId]: question }));
+    }
     if (explanation) setExplanations((e) => ({ ...e, [topicId]: explanation }));
 
     if (phase === "original") {
@@ -124,18 +130,12 @@ export default function Home() {
     }
 
     if (phase === "retest") {
-        if (!correct) {
-            explainMistake({
-              topic: topicName(topicId, myLang),            // adjust to what topicName expects
-              question: question.prompt[myLang] || question.prompt.en,
-              correct_answer: String(question.answer),      // adjust to your data shape
-              student_answer: String(answer.value),
-              student_explanation: answer.explanation,
-              lang: myLang,
-            })
-              .then((text) => setExplanations((prev) => ({ ...prev, [topicId]: text })))
-              .catch(() => {});   // if Gemini is down, the quiz carries on without it
-          }
+      if (!correct) {
+        setTopicState(topicId, "gap");
+        setLessonTopic(topicId);
+        setScreen("lesson");
+        return;
+      }
       setTopicState(topicId, "mastered");
       setFixed((f) => f + 1);
       if (idx === 0) return showMap("done");
@@ -218,6 +218,7 @@ export default function Home() {
           topicId={lessonTopic}
           wrongValue={wrong[lessonTopic]}
           explanation={explanations[lessonTopic]}
+          question={wrongQuestions[lessonTopic] || QUESTIONS[lessonTopic][0]}
           lang={myLang}
           courseLang={courseLang}
           onRetest={() => ask("retest", CHAIN.indexOf(lessonTopic), 1)}
