@@ -87,6 +87,41 @@ def retest_step(s, choice, correct):
         s.wrong_picks[s.current_topic] = choice
         s.phase = "lesson"
 
-def to_response(S):
+def chain_length(topic):
+    """How many topics are in the chain from this topic down to the bottom."""
+    n = 1
+    while TOPICS[topic]["prereqs"]:
+        topic = TOPICS[topic]["prereqs"][0]
+        n += 1
+    return n
+
+
+def make_message(s):
+    target = TOPICS[s.target_topic]["name"]
+    if s.phase == "lesson" and s.root:
+        root = TOPICS[s.root]["name"]
+        if s.root == s.target_topic:
+            return f"Your gap is {root}."
+        return f"Your gap isn't {target}. It's {root}."
+    if s.phase == "done":
+        if not s.gap_chain:
+            return f"Nice work. That was just a careless mistake, and you know {target}."
+        fixed = sum(1 for t in s.gap_chain if s.status[t] == "mastered")
+        return f"You fixed {fixed} gaps and mastered {target}."
+    return None
+
+
+def to_response(s):
     q = None
-    
+    if s.phase in ("diagnosing", "retesting"):
+        raw = current_question(s)
+        q = {"id": raw["id"], "topic": s.current_topic,
+             "text": raw["text"], "options": raw["options"]}
+    return {
+        "phase": s.phase,
+        "question": q,
+        "progress": {"current": s.checked, "total": chain_length(s.target_topic)},
+        "map": s.status,
+        "highlight": s.root,
+        "message": make_message(s),
+    }
