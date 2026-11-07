@@ -1,5 +1,7 @@
 import os
 import time
+import json
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -9,27 +11,45 @@ from pydantic import BaseModel
 LANG_NAMES = {"en": "English", "fr": "French", "zh": "Simplified Chinese"}
 MODEL = "gemini-3.8-flash"
 
-TOPIC_CATALOG = [
+TOPIC_NAMES = [
     {
         "id": "twos_complement",
+        "model_id": "twos_complement",
         "names": {"en": "Two's complement", "fr": "Complément à deux", "zh": "补码"},
         "prerequisite": "bit_flip",
     },
     {
         "id": "bit_flip",
+        "model_id": "bit_flipping",
         "names": {"en": "Bit flipping", "fr": "Inversion des bits", "zh": "按位取反"},
         "prerequisite": "place_value",
     },
     {
         "id": "place_value",
+        "model_id": "binary_place_value",
         "names": {"en": "Binary place value", "fr": "Valeur de position binaire", "zh": "二进制位值"},
         "prerequisite": "powers_of_two",
     },
     {
         "id": "powers_of_two",
+        "model_id": "powers_of_two",
         "names": {"en": "Powers of two", "fr": "Puissances de deux", "zh": "2 的幂"},
         "prerequisite": None,
     },
+]
+
+# Keep the selectable topic list aligned with the question model used by the
+# Python logic engine. The browser keeps its translated presentation copy.
+TOPICS_PATH = Path(__file__).resolve().parent.parent / "src" / "data" / "topics.json"
+with TOPICS_PATH.open(encoding="utf-8") as topics_file:
+    MODEL_TOPICS = json.load(topics_file)
+TOPIC_CATALOG = [
+    {
+        **topic,
+        "question_count": len(MODEL_TOPICS[topic["model_id"]]["questions"]),
+    }
+    for topic in TOPIC_NAMES
+    if topic["model_id"] in MODEL_TOPICS
 ]
 
 load_dotenv()

@@ -6,7 +6,7 @@ WiE Hackathon 2026 Submission
 
 FastAPI + React.js
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+The project uses a Next.js frontend and a FastAPI backend.
 
 ## Getting Started
 
@@ -20,25 +20,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Gemini explanations
-
-The frontend uses the existing FastAPI `POST /explain` endpoint through a Next.js
-server route. Start the backend in a second terminal with the project's Python
-environment and `GEMINI_API_KEY` available to `my-app/src/api.py`:
-
-```bash
-cd my-app
-uvicorn src.api:app --reload --port 8000
-```
-
-The proxy defaults to `http://127.0.0.1:8000`. Set the server-only
-`BACKEND_URL` environment variable if FastAPI runs elsewhere. Do not put the
-Gemini key in a `NEXT_PUBLIC_` variable. If the backend is unavailable, the
-frontend shows the built-in lesson content instead.
-
 ### Start the FastAPI backend
 
-Use Python 3.11 or newer. From the repository root:
+Use Python 3.11 or newer. In a second terminal, run:
 
 ```bash
 cd my-app
@@ -49,15 +33,19 @@ cp .env.example .env
 ```
 
 Open `my-app/.env` in VS Code and add your Gemini API key after `GEMINI_API_KEY=`.
-Keep that file private; it is ignored by Git. Then start the backend:
+Keep that file private; it is ignored by Git. Then start FastAPI:
 
 ```bash
-uvicorn src.api:app --reload --port 8000
+uvicorn api:app --reload --port 8000
 ```
 
-The backend serves `/health`, `/topics`, and `/explain`. Topic selection works
-without a Gemini key; personalized explanations need one. The configured model
-is `gemini-3.8-flash`.
+The backend serves `/health`, `/topics`, and `/explain`. The topic picker reads
+its available topics from the Python question model, and selection works
+without a Gemini key. Personalized explanations use `gemini-3.8-flash` and need
+the key. The frontend connects through same-origin Next.js routes and shows its
+built-in translated lesson if FastAPI or Gemini is unavailable. The proxy
+defaults to `http://127.0.0.1:8000`; set the server-only `BACKEND_URL` variable
+if FastAPI runs elsewhere. Never put the Gemini key in a `NEXT_PUBLIC_` variable.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
