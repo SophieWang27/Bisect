@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import secrets
@@ -74,6 +75,10 @@ initialize_database()
 
 TopicId = Literal["twos_complement", "bit_flip", "place_value", "powers_of_two"]
 Language = Literal["en", "fr", "zh"]
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from engine_api import router
+app.include_router(router)
 
 class AskRequest(BaseModel):
     topic: str

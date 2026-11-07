@@ -125,3 +125,17 @@ def to_response(s):
         "highlight": s.root,
         "message": make_message(s),
     }
+
+def lesson_info(s):
+    topic = TOPICS[s.root]
+    qi = 2 if s.attempts > 0 else 1     # which question the last wrong pick came from
+    q = topic["questions"][qi]
+    pick = s.wrong_picks[s.root]
+    return {
+        "topic": topic["name"],
+        "notes": topic.get("notes", ""),
+        "question": q["text"],
+        "picked": q["options"][pick],
+        "correct": q["options"][q["correct"]],
+        "mistake": q["mistakes"].get(str(pick), ""),
+    }
