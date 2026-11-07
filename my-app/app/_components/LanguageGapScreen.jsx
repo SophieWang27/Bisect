@@ -9,7 +9,7 @@ import TagsPanel from "./TagsPanel";
 
 const simplify = (s) => s.toLowerCase().replace(/[’'`]/g, "").replace(/\s+/g, " ").trim();
 
-export default function LanguageGapScreen({ lang, courseLang, onRetry, onTagsShared }) {
+export default function LanguageGapScreen({ lang, courseLang, onRetry, sessionId }) {
   const topic = CHAIN[0];
   const [practice, setPractice] = useState("");
   const [result, setResult] = useState(null); // "right" | "wrong" | null
@@ -122,7 +122,7 @@ export default function LanguageGapScreen({ lang, courseLang, onRetry, onTagsSha
       </article>
 
       <aside className="bx-side">
-        <TagsPanel lang={lang} onShared={onTagsShared} />
+        <TagsPanel lang={lang} sessionId={sessionId} />
       </aside>
     </main>
   );

@@ -36,6 +36,7 @@ yarn-error.log*
 !.env.example
 **/venv
 **/.venv/
+my-app/bisect.sqlite3*
 
 # vercel
 .vercel
@@ -45,7 +46,6 @@ yarn-error.log*
 next-env.d.ts
 next.config.ts
 tsconfig.json
-eslint.config.mjs
 
 #python
 __pycache__/

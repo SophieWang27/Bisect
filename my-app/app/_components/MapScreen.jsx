@@ -6,7 +6,7 @@ import { Arrow } from "./Icons";
 import TagsPanel from "./TagsPanel";
 
 // mode: "diagnosed" (root found) | "climbing" (retesting upward) | "done" (all fixed)
-export default function MapScreen({ states, rootCause, startTopic = CHAIN[0], lang, courseLang, mode, nextTopic, fixedCount, explanationNote, onPrimary, onTeacher, onTagsShared, onNextTopic }) {
+export default function MapScreen({ states, rootCause, startTopic = CHAIN[0], lang, courseLang, mode, nextTopic, fixedCount, explanationNote, onPrimary, onTeacher, onNextTopic, sessionId }) {
   const [view, setView] = useState("map");
   const headingRef = useRef(null);
   useEffect(() => headingRef.current?.focus(), []);
@@ -101,7 +101,7 @@ export default function MapScreen({ states, rootCause, startTopic = CHAIN[0], la
             <p className="bx-muted">{t("climbHint", lang)}</p>
           </section>
         ) : (
-          <TagsPanel lang={lang} onShared={onTagsShared} />
+          <TagsPanel lang={lang} sessionId={sessionId} />
         )}
       </aside>
     </main>

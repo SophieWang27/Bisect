@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import "./globals.css";
 import { CHAIN, HTML_LANG, QUESTIONS, TOPICS, t } from "./_lib/data";
 import { isCorrect } from "./_lib/speech";
-import { getTopics, logAnswer } from "./_lib/api";
+import { getTopics, logAnswer, logOutcome } from "./_lib/api";
 import { Header, topicName } from "./_components/ui";
 import QuestionScreen from "./_components/QuestionScreen";
 import MapScreen from "./_components/MapScreen";
@@ -15,9 +15,19 @@ import TeacherScreen from "./_components/TeacherScreen";
 const freshStates = () => Object.fromEntries(CHAIN.map((id) => [id, "untested"]));
 const LAST = CHAIN.length - 1;
 
+function getOrCreateAnonymousSessionId() {
+  if (typeof window === "undefined") return "";
+  const existing = sessionStorage.getItem("bisect-session-id");
+  if (existing) return existing;
+  const id = crypto.randomUUID();
+  sessionStorage.setItem("bisect-session-id", id);
+  return id;
+}
+
 export default function BisectPage() {
   const [courseLang, setCourseLang] = useState("en");
   const [myLang, setMyLang] = useState("en");
+  const [sessionId, setSessionId] = useState(getOrCreateAnonymousSessionId);
   const [startTopic, setStartTopic] = useState(CHAIN[0]);
   const [topicOptions, setTopicOptions] = useState(() => CHAIN.map((id) => ({ id, names: TOPICS[id] })));
   const [screen, setScreen] = useState("question"); // question | map | lesson | languageGap | teacher
@@ -36,7 +46,6 @@ export default function BisectPage() {
   const [nextTopic, setNextTopic] = useState(null);
   const [lessonTopic, setLessonTopic] = useState(null);
   const [attempt, setAttempt] = useState(0);
-  const [sharedTags, setSharedTags] = useState([]);
   const [lastStudentScreen, setLastStudentScreen] = useState("question");
 
   const goTeacher = () => {
@@ -58,7 +67,19 @@ export default function BisectPage() {
     };
   }, []);
 
+  function beginAnonymousSession() {
+    const id = crypto.randomUUID();
+    sessionStorage.setItem("bisect-session-id", id);
+    setSessionId(id);
+  }
+
+  function saveOutcome(outcome, rootTopic = null) {
+    if (!sessionId) return;
+    void logOutcome({ sessionId, startTopic, rootTopic, outcome });
+  }
+
   function restart(nextStartTopic = startTopic) {
+    beginAnonymousSession();
     const nextStartIndex = Math.max(0, CHAIN.indexOf(nextStartTopic));
     setStartTopic(nextStartTopic);
     setScreen("question");
@@ -102,7 +123,16 @@ export default function BisectPage() {
 
   function handleAnswer({ value, mode, explanation, langShown }) {
     const correct = isCorrect(question, value);
-    logAnswer({ questionId: question.id, topicId, mode, value, explanation, langShown, correct });
+    void logAnswer({
+      sessionId,
+      questionId: question.id,
+      topicId,
+      phase,
+      mode,
+      learnerLang: myLang,
+      courseLang,
+      correct,
+    });
     setAsked((n) => n + 1);
     if (!correct && (qIndex === 0 || !wrong[topicId] || phase === "retest")) {
       setWrong((w) => ({ ...w, [topicId]: value }));
@@ -113,6 +143,7 @@ export default function BisectPage() {
     if (phase === "original") {
       if (correct) {
         setTopicState(topicId, "mastered");
+        saveOutcome("completed");
         return showMap("done");
       }
       setTopicState(topicId, "gap");
@@ -123,9 +154,13 @@ export default function BisectPage() {
     }
 
     if (phase === "langcheck") {
-      if (correct) return setScreen("languageGap");
+      if (correct) {
+        saveOutcome("language_gap");
+        return setScreen("languageGap");
+      }
       if (startIndex === LAST) {
         setRoot(startTopic);
+        saveOutcome("concept_gap", startTopic);
         return showMap("diagnosed");
       }
       return ask("diagnose", startIndex + 1, 0);
@@ -136,17 +171,20 @@ export default function BisectPage() {
         if (idx === startIndex) {
           setTopicState(topicId, "mastered");
           setRoot(null);
+          saveOutcome("completed");
           return showMap("done");
         }
         // Passed (first try or on the confirmation question): the gap is the topic above.
         setTopicState(topicId, "mastered");
         setRoot(CHAIN[idx - 1]);
+        saveOutcome("concept_gap", CHAIN[idx - 1]);
         return showMap("diagnosed");
       }
       if (qIndex === 0) return ask("diagnose", idx, 1); // confirmation question before calling it a gap
       setTopicState(topicId, "gap");
       if (idx === LAST) {
         setRoot(topicId);
+        saveOutcome("concept_gap", topicId);
         return showMap("diagnosed");
       }
       return ask("diagnose", idx + 1, 0);
@@ -239,7 +277,7 @@ export default function BisectPage() {
           explanationNote={root ? explanations[root] : null}
           onPrimary={onMapPrimary}
           onTeacher={goTeacher}
-          onTagsShared={(tags) => setSharedTags(tags)}
+          sessionId={sessionId}
           onNextTopic={() => restart(CHAIN[(startIndex + 1) % CHAIN.length])}
         />
       )}
@@ -261,13 +299,13 @@ export default function BisectPage() {
           lang={myLang}
           courseLang={courseLang}
           onRetry={() => ask("langretry", 0, 0)}
-          onTagsShared={(tags) => setSharedTags(tags)}
+          sessionId={sessionId}
         />
       )}
 
-      {screen === "teacher" && <TeacherScreen lang={courseLang} sharedTags={sharedTags} />}
+      {screen === "teacher" && <TeacherScreen lang={courseLang} />}
 
-      <nav className="bx-demo-bar" aria-label="Demo controls">
+      <nav className="bx-session-bar" aria-label="Session controls">
         <button type="button" onClick={() => (isTeacher ? setScreen(lastStudentScreen) : goTeacher())}>
           {isTeacher ? t("studentView", courseLang) : t("teacherView", myLang)}
         </button>

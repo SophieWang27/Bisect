@@ -222,20 +222,6 @@ export const TAGS = [
   { id: "practice", en: "Need more practice", fr: "Besoin de plus de pratique", zh: "需要更多练习" },
 ];
 
-// Sample class data for the teacher dashboard (always shown in the course language).
-export const CLASS_DATA = {
-  diagnosed: 32,
-  conceptGaps: 24,
-  languageGaps: 8,
-  rootGaps: [
-    { topic: "place_value", pct: 62 },
-    { topic: "powers_of_two", pct: 18 },
-    { topic: "bit_flip", pct: 12 },
-    { topic: "twos_complement", pct: 8 },
-  ],
-  themes: { exam: 5, terms: 4, examples: 2 },
-};
-
 // UI text. Add a key here once, in all three languages.
 export const UI = {
   courseLanguage: { en: "Course language", fr: "Langue du cours", zh: "课程语言" },
@@ -315,7 +301,7 @@ export const UI = {
   shared: { en: "Shared. Thanks!", fr: "Partagé. Merci !", zh: "已分享，谢谢！" },
   teacherView: { en: "Teacher view", fr: "Vue enseignant", zh: "教师视图" },
   studentView: { en: "Student view", fr: "Vue étudiant", zh: "学生视图" },
-  restart: { en: "Restart demo", fr: "Recommencer", zh: "重新开始" },
+  restart: { en: "Start new session", fr: "Nouvelle session", zh: "开始新会话" },
 };
 
 export function t(key, lang, vars = {}) {

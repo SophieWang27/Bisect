@@ -19,10 +19,52 @@ export async function getTopics() {
   }
 }
 
-// The current backend has no answer logging endpoint; answers remain local.
-export async function logAnswer(answer) {
-  // The current backend has no answer logging endpoint. Keep the demo usable.
-  return { ok: true, localOnly: true, answer };
+// Persist only anonymous learning signals; free-text answers and explanations stay private.
+export async function logAnswer({ sessionId, questionId, topicId, phase, correct, mode, learnerLang, courseLang }) {
+  if (!sessionId) return false;
+  try {
+    const response = await fetch("/api/answers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_id: crypto.randomUUID(),
+        session_id: sessionId,
+        topic_id: topicId,
+        question_id: questionId,
+        phase,
+        correct,
+        answer_mode: mode,
+        learner_language: learnerLang,
+        course_language: courseLang,
+      }),
+    });
+    if (!response.ok) throw new Error(`Answer logging failed: ${response.status}`);
+    return true;
+  } catch (error) {
+    console.error("Could not save anonymous learning activity.", error);
+    return false;
+  }
+}
+
+export async function logOutcome({ sessionId, startTopic, rootTopic = null, outcome }) {
+  if (!sessionId) return false;
+  try {
+    const response = await fetch("/api/outcomes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        start_topic: startTopic,
+        root_topic: rootTopic,
+        outcome,
+      }),
+    });
+    if (!response.ok) throw new Error(`Outcome logging failed: ${response.status}`);
+    return true;
+  } catch (error) {
+    console.error("Could not save the anonymous diagnosis outcome.", error);
+    return false;
+  }
 }
 
 // Use Gemini for personalized feedback and retain the built-in translated lesson content.
@@ -53,10 +95,35 @@ export async function getLesson({ topicId, wrongValue, explanation, question: at
   }
 }
 
-// Anonymous one-tap tags → teacher dashboard themes.
-export async function shareTags(tagIds) {
-  // The current backend has no tag storage endpoint; tags stay in this demo session.
-  return { ok: true, localOnly: true, tags: tagIds };
+// Anonymous one-tap tags feed the aggregate teacher dashboard.
+export async function shareTags(sessionId, tagIds) {
+  const response = await fetch("/api/tags", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, tags: tagIds }),
+  });
+  if (!response.ok) throw new Error(`Feedback could not be saved: ${response.status}`);
+  return response.json();
+}
+
+export async function getTeacherSummary(token) {
+  const response = await fetch("/api/teacher/summary", {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || "Teacher dashboard could not load.");
+  return payload;
+}
+
+export async function getTeacherReport(token, lang = "en") {
+  const response = await fetch(`/api/teacher/report?lang=${encodeURIComponent(lang)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || "Report could not be generated.");
+  return payload;
 }
 
 export async function explain(payload) {
