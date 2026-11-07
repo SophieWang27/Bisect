@@ -1,3 +1,4 @@
 {
+  "/bisect/page": "app/bisect/page.js",
   "/page": "app/page.js"
 }
