@@ -2,6 +2,7 @@
     "powers_of_two" : {
         "name" : "Powers of Two",
         "prereqs" : [],
+        "notes" : "A power of two means multiplying 2 by itself that many times: 2^3 = 2 x 2 x 2 = 8. The exponent counts how many 2s you multiply, not what you multiply by. Any number to the power 0 is 1, so 2^0 = 1. The first powers are 1, 2, 4, 8, 16, 32, 64, 128, 256.",
         "questions" : [
             {
                 "id" : "pw1",
@@ -41,6 +42,7 @@
     "binary_place_value" : {
         "name" : "Binary Place Value",
         "prereqs" : ["powers_of_two"],
+        "notes" : "Each bit in a binary number has a place value that is a power of 2, starting at 2^0 = 1 on the far right and doubling as you move left: 1, 2, 4, 8, and so on. To convert to decimal, add up the place values of every bit that is a 1. Example: 1011 = 8 + 0 + 2 + 1 = 11.",
         "questions" : [
             {
                 "id" : "bp1",
@@ -50,7 +52,7 @@
                 "mistakes" : {
                     "0" : "left out the 2s place (8 + 1)",
                     "1" : "thought the rightmost place was 2^1 instead of 2^0, so every place was doubled (2 + 4 + 16)",
-                    "3" : "went one power too far (that is 2^4)"
+                    "3" : "read the place values backwards (that is 1101)"
                 }
             },
             {
@@ -80,6 +82,7 @@
     "bit_flipping" : {
         "name" : "Bit Flipping",
         "prereqs" : ["binary_place_value"],
+        "notes" : "Flipping bits means changing every 0 to a 1 and every 1 to a 0, and nothing else. It is also called the bitwise NOT or the one's complement. Flipping does not add or subtract anything. Example: flipping 0101 gives 1010, and flipping 00000111 gives 11111000.",
         "questions" : [
             {
                 "id" : "bf1",
@@ -117,8 +120,9 @@
         ]
     },
     "twos_complement" : {
-        "name" : "Twos Complement",
+        "name" : "Two's Complement",
         "prereqs" : ["bit_flipping"],
+        "notes" : "Two's complement is how computers store negative numbers in binary. To get the negative of a number, flip every bit and then add 1. This works because a number plus its negative then adds up to zero in a fixed number of bits, so the same adder circuit handles positive and negative values. Example in 4 bits: 5 is 0101, flipping gives 1010, adding 1 gives 1011, so -5 is 1011.",
         "questions" : [
             {
                 "id" : "tc1",
